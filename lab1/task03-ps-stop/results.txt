@@ -1,0 +1,67 @@
+Лабораторная 1. Задание 3. Фоновый контейнер, stop и rm
+
+$ docker run -d --name ipr-lab1-task03-nginx -p 127.0.0.1::80 nginx
+Unable to find image 'nginx:latest' locally
+latest: Pulling from library/nginx
+Digest: sha256:6a3df739b6312289e87d70947d900669c1b3087474ece5814b9c01bbf2e6dde3
+Status: Downloaded newer image for nginx:latest
+16228792a429961b0b2b4c221a835276d1f33e2a7f89c0bd0972bf012f25b9e3
+
+$ docker port ipr-lab1-task03-nginx 80/tcp
+127.0.0.1:49696
+
+$ docker ps --filter 'name=^/ipr-lab1-task03-nginx$' --format 'table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}'
+NAMES                   IMAGE     STATUS         PORTS
+ipr-lab1-task03-nginx   nginx     Up 7 seconds   127.0.0.1:49696->80/tcp
+
+$ curl --noproxy '*' -fsS --connect-timeout 3 --max-time 5 -w '\nHTTP %{http_code}\n' 'http://127.0.0.1:49696/'
+<!DOCTYPE html>
+<html>
+<head>
+<title>Welcome to nginx!</title>
+<style>
+html { color-scheme: light dark; }
+body { width: 35em; margin: 0 auto;
+font-family: Tahoma, Verdana, Arial, sans-serif; }
+</style>
+</head>
+<body>
+<h1>Welcome to nginx!</h1>
+<p>If you see this page, nginx is successfully installed and working.
+Further configuration is required for the web server, reverse proxy,
+API gateway, load balancer, content cache, or other features.</p>
+
+<p>For online documentation and support please refer to
+<a href="https://nginx.org/">nginx.org</a>.<br/>
+To engage with the community please visit
+<a href="https://community.nginx.org/">community.nginx.org</a>.<br/>
+For enterprise grade support, professional services, additional
+security features and capabilities please refer to
+<a href="https://f5.com/nginx">f5.com/nginx</a>.</p>
+
+<p><em>Thank you for using nginx.</em></p>
+</body>
+</html>
+
+HTTP 200
+
+$ docker stop ipr-lab1-task03-nginx
+ipr-lab1-task03-nginx
+
+$ docker ps --filter 'name=^/ipr-lab1-task03-nginx$' --format 'table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}'
+NAMES     IMAGE     STATUS    PORTS
+
+$ docker ps -a --filter 'name=^/ipr-lab1-task03-nginx$' --format 'table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}'
+NAMES                   IMAGE     STATUS                     PORTS
+ipr-lab1-task03-nginx   nginx     Exited (0) 8 seconds ago
+
+$ curl --noproxy '*' -fsS --connect-timeout 3 --max-time 5 -w '\nHTTP %{http_code}\n' 'http://127.0.0.1:49696/'
+curl: (7) Failed to connect to 127.0.0.1 port 49696 after 0 ms: Couldn't connect to server
+
+HTTP 000
+
+$ docker rm ipr-lab1-task03-nginx
+ipr-lab1-task03-nginx
+
+$ docker ps -a --filter 'name=^/ipr-lab1-task03-nginx$' --format 'table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}'
+NAMES     IMAGE     STATUS    PORTS
