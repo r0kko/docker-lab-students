@@ -1,3 +1,53 @@
+# Первый Dockerfile для Python
+
+## Приложение
+
+```python
+print("Hello, Docker!")
+```
+
+## Dockerfile
+
+```dockerfile
+# Базовый образ (лёгкий вариант Python 3.8)
+FROM python:3.8-slim
+
+# Рабочий каталог внутри образа
+WORKDIR /app
+
+# Копируем приложение в образ
+COPY app.py .
+
+# Команда запуска приложения (формат-список)
+CMD ["python", "app.py"]
+```
+
+## Что делает каждая инструкция
+
+`FROM python:3.8-slim` задаёт базовый образ с Python 3.8.
+
+`WORKDIR /app` устанавливает рабочий каталог для копирования файла и запуска приложения.
+
+`COPY app.py .` копирует файл из контекста сборки в рабочий каталог образа по пути `/app/app.py`.
+
+`CMD ["python", "app.py"]` задаёт команду по умолчанию. При запуске контейнера она выполняет `app.py` из каталога `/app`.
+
+## Проверка
+
+Приложение проверено на хосте. Для проверки Dockerfile состояние Buildx записывалось во временный каталог `CHECK_DIR`.
+
+```text
+$ python3 app.py
+Hello, Docker!
+
+$ BUILDX_CONFIG="$CHECK_DIR" docker build --check --progress=plain .
+Check complete, no warnings found.
+```
+
+Сборка образа и запуск контейнера предусмотрены в задании 5.
+
+<div><hr></div>
+
 # Задание 4. Первый Dockerfile
 
 **Что делаем:** пишем Dockerfile для простого Python-приложения.

@@ -1,0 +1,38 @@
+Лабораторная 1. Задание 4. Первый Dockerfile
+
+Команды выполнены из lab1/task04-dockerfile.
+CHECK_DIR — временный каталог для состояния Buildx.
+
+$ cat Dockerfile
+# Базовый образ (лёгкий вариант Python 3.8)
+FROM python:3.8-slim
+
+# Рабочий каталог внутри образа
+WORKDIR /app
+
+# Копируем приложение в образ
+COPY app.py .
+
+# Команда запуска приложения (формат-список)
+CMD ["python", "app.py"]
+
+$ cat app.py
+print("Hello, Docker!")
+
+$ python3 app.py
+Hello, Docker!
+
+$ BUILDX_CONFIG="$CHECK_DIR" docker build --check --progress=plain .
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 377B done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/python:3.8-slim
+#2 DONE 3.4s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 2B done
+#3 DONE 0.0s
+Check complete, no warnings found.
