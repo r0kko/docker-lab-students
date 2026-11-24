@@ -1,3 +1,51 @@
+# Сборка и запуск образа hello-docker
+
+## Первая сборка и запуск
+
+Образ собран из Dockerfile и `app.py` задания 4 для `linux/arm64`. Временная копия этих файлов использована как контекст сборки, `BUILD_DIR` — временный каталог для состояния Buildx.
+
+```text
+$ BUILDX_CONFIG="$BUILD_DIR" docker build --progress=plain -t hello-docker .
+```
+
+Проверка образа командой `docker image ls hello-docker` с выводом имени, тега, ID и размера.
+
+```text
+REPOSITORY     TAG       IMAGE ID       SIZE
+hello-docker   latest    10d01170ed68   215MB
+
+$ docker run --rm hello-docker
+Hello, Docker!
+```
+
+## Пересборка и кэш
+
+Во временной копии `app.py` текст вывода заменён на `Hello, Docker cache!`. Образ пересобран той же командой.
+
+```text
+#6 [2/3] WORKDIR /app
+#6 CACHED
+
+#7 [3/3] COPY app.py .
+#7 DONE 0.0s
+
+$ docker run --rm hello-docker
+Hello, Docker cache!
+```
+
+`WORKDIR /app` взят из кэша. `COPY app.py .` выполнен заново, поскольку изменилось содержимое копируемого файла. Базовый образ `python:3.8-slim` остался тем же, что подтверждает совпадение digest в журнале сборки.
+
+## Исходный вариант после эксперимента
+
+После проверки кэша образ `hello-docker` пересобран с исходным `app.py`.
+
+```text
+$ docker run --rm hello-docker
+Hello, Docker!
+```
+
+<div><hr></div>
+
 # Задание 5. Сборка и запуск своего образа
 
 **Что делаем:** собираем образ из Dockerfile задания 4 и запускаем
