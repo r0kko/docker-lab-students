@@ -1,0 +1,72 @@
+Лабораторная 1. Задание 6. Тома: MySQL с постоянным хранилищем
+
+Переменная MYSQL_ROOT_PASSWORD задана локально для учебного контейнера.
+
+$ docker volume create mysql-data
+mysql-data
+
+$ docker volume ls --filter 'name=^mysql-data$' --format 'table {{.Driver}}\t{{.Name}}'
+DRIVER    VOLUME NAME
+local     mysql-data
+
+$ docker run -d --name mysql-container -e MYSQL_ROOT_PASSWORD -v mysql-data:/var/lib/mysql mysql:8.0
+Unable to find image 'mysql:8.0' locally
+8.0: Pulling from library/mysql
+4fcb28d1dfcf: Pulling fs layer
+7ce425b17caf: Pulling fs layer
+ad770837e789: Pulling fs layer
+70a53223cb4c: Pulling fs layer
+7b9f24d93d52: Pulling fs layer
+11c0b299cb47: Pulling fs layer
+1959e4a06a1c: Pulling fs layer
+e9b2852d2a9d: Pulling fs layer
+605b7f42ac6e: Pulling fs layer
+42505e6e6b91: Pulling fs layer
+fa30ab141b5a: Pulling fs layer
+e9b2852d2a9d: Download complete
+4fcb28d1dfcf: Download complete
+7ce425b17caf: Download complete
+7b9f24d93d52: Download complete
+70a53223cb4c: Download complete
+1959e4a06a1c: Download complete
+11c0b299cb47: Download complete
+ad770837e789: Download complete
+7b9f24d93d52: Pull complete
+70a53223cb4c: Pull complete
+ad770837e789: Pull complete
+42505e6e6b91: Download complete
+e9b2852d2a9d: Pull complete
+7ce425b17caf: Pull complete
+11c0b299cb47: Pull complete
+7a0e30178db8: Download complete
+578f543767f0: Download complete
+605b7f42ac6e: Download complete
+1959e4a06a1c: Pull complete
+605b7f42ac6e: Pull complete
+fa30ab141b5a: Download complete
+42505e6e6b91: Pull complete
+fa30ab141b5a: Pull complete
+4fcb28d1dfcf: Pull complete
+Digest: sha256:7dcddc01f13bab2f15cde676d44d01f61fc9f99fe7785e86196dfc07d358ae2b
+Status: Downloaded newer image for mysql:8.0
+da024b7ce77e65a19ed9cb8f92cc2f36d80f64a1062f566a36903bd3a0521b7c
+
+$ docker image inspect --format '{{.Os}}/{{.Architecture}}' mysql:8.0
+linux/arm64
+
+$ docker ps --filter 'name=^/mysql-container$' --format 'table {{.Names}}\t{{.Image}}\t{{.Status}}'
+NAMES             IMAGE       STATUS
+mysql-container   mysql:8.0   Up 24 seconds
+
+$ docker inspect --format '{{range .Mounts}}{{if eq .Destination "/var/lib/mysql"}}{{.Type}} {{.Name}} -> {{.Destination}} (rw={{.RW}}){{end}}{{end}}' mysql-container
+volume mysql-data -> /var/lib/mysql (rw=true)
+
+$ docker exec mysql-container sh -c 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql --protocol=TCP --host=127.0.0.1 --connect-timeout=2 --user=root --batch --skip-column-names --execute="SELECT VERSION()"'
+8.0.46
+
+$ docker logs mysql-container 2>&1 | tail -n 5
+2026-11-26T16:05:54.274677Z 0 [Warning] [MY-010068] [Server] CA certificate ca.pem is self signed.
+2026-11-26T16:05:54.274698Z 0 [System] [MY-013602] [Server] Channel mysql_main configured to support TLS. Encrypted connections are now supported for this channel.
+2026-11-26T16:05:54.275681Z 0 [Warning] [MY-011810] [Server] Insecure configuration for --pid-file: Location '/var/run/mysqld' in the path is accessible to all OS users. Consider choosing a different directory.
+2026-11-26T16:05:54.282670Z 0 [System] [MY-011323] [Server] X Plugin ready for connections. Bind-address: '::' port: 33060, socket: /var/run/mysqld/mysqlx.sock
+2026-11-26T16:05:54.282705Z 0 [System] [MY-010931] [Server] /usr/sbin/mysqld: ready for connections. Version: '8.0.46'  socket: '/var/run/mysqld/mysqld.sock'  port: 3306  MySQL Community Server - GPL.
