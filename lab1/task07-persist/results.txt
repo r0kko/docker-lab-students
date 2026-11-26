@@ -1,0 +1,55 @@
+Лабораторная 1. Задание 7. Данные переживают контейнер
+
+Для пересоздания использованы тот же образ mysql:8.0, тот же том mysql-data и прежний пароль, переданный через MYSQL_ROOT_PASSWORD.
+
+$ docker exec mysql-container sh -c 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql --protocol=TCP --host=127.0.0.1 --connect-timeout=2 --user=root --table --execute="$1"' sh 'CREATE DATABASE testdb;'
+
+$ docker exec mysql-container sh -c 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql --protocol=TCP --host=127.0.0.1 --connect-timeout=2 --user=root --table --execute="$1"' sh 'SHOW DATABASES;'
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| mysql              |
+| performance_schema |
+| sys                |
+| testdb             |
++--------------------+
+
+$ docker container inspect --format '{{printf "%.12s" .Id}} {{.State.Status}} {{.Config.Image}} {{range .Mounts}}{{.Name}} -> {{.Destination}}{{end}}' mysql-container
+da024b7ce77e running mysql:8.0 mysql-data -> /var/lib/mysql
+
+$ docker stop --time 30 da024b7ce77e65a19ed9cb8f92cc2f36d80f64a1062f566a36903bd3a0521b7c
+Flag --time has been deprecated, use --timeout instead
+da024b7ce77e65a19ed9cb8f92cc2f36d80f64a1062f566a36903bd3a0521b7c
+
+$ docker container inspect --format '{{.State.Status}} {{.State.ExitCode}}' da024b7ce77e65a19ed9cb8f92cc2f36d80f64a1062f566a36903bd3a0521b7c
+exited 0
+
+$ docker rm da024b7ce77e65a19ed9cb8f92cc2f36d80f64a1062f566a36903bd3a0521b7c
+da024b7ce77e65a19ed9cb8f92cc2f36d80f64a1062f566a36903bd3a0521b7c
+
+$ docker ps -a --filter 'name=^/mysql-container$' --format 'table {{.Names}}\t{{.Status}}'
+NAMES     STATUS
+
+$ docker volume inspect --format '{{.Name}} {{.Driver}} {{.Mountpoint}}' mysql-data
+mysql-data local /var/lib/docker/volumes/mysql-data/_data
+
+$ docker run -d --pull=never --name mysql-container -e MYSQL_ROOT_PASSWORD -v mysql-data:/var/lib/mysql mysql:8.0
+980c737dab59ba8ac0f8ecae25e44480dbf251fafa41d5aad2c78683f741807f
+
+$ docker exec mysql-container sh -c 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql --protocol=TCP --host=127.0.0.1 --connect-timeout=2 --user=root --table --execute="$1"' sh 'SHOW DATABASES;'
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| mysql              |
+| performance_schema |
+| sys                |
+| testdb             |
++--------------------+
+
+$ docker container inspect --format '{{printf "%.12s" .Id}} {{.State.Status}} {{.Config.Image}} {{range .Mounts}}{{.Name}} -> {{.Destination}}{{end}}' mysql-container
+980c737dab59 running mysql:8.0 mysql-data -> /var/lib/mysql
+
+$ docker volume inspect --format '{{.Name}} {{.Driver}} {{.Mountpoint}}' mysql-data
+mysql-data local /var/lib/docker/volumes/mysql-data/_data

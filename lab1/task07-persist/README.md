@@ -1,3 +1,53 @@
+# Сохранение базы MySQL после пересоздания контейнера
+
+## Создание базы
+
+В контейнере MySQL из задания 6 создана база `testdb`. Запрос `SHOW DATABASES` подтвердил, что она появилась в списке.
+
+```text
+mysql> CREATE DATABASE testdb;
+
+Перед удалением
+da024b7ce77e running mysql:8.0 mysql-data -> /var/lib/mysql
+```
+
+## Удаление и повторный запуск
+
+Старый контейнер штатно остановлен через `docker stop` и удалён через `docker rm`. После удаления `docker ps -a` с фильтром по имени показал пустой список, а `docker volume inspect` по-прежнему показал том `mysql-data`.
+
+```text
+$ docker ps -a (фильтр по имени)
+NAMES     STATUS
+```
+
+Новый контейнер запущен из того же локального образа `mysql:8.0` с томом `mysql-data`. Идентификатор контейнера изменился.
+
+```text
+После пересоздания
+980c737dab59 running mysql:8.0 mysql-data -> /var/lib/mysql
+```
+
+## Проверка данных
+
+```text
+mysql> SHOW DATABASES;
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| mysql              |
+| performance_schema |
+| sys                |
+| testdb             |
++--------------------+
+```
+
+Список баз совпал до и после пересоздания. `testdb` сохранилась в томе, который подключён к `/var/lib/mysql` внутри контейнера.
+
+По данным `docker volume inspect mysql-data` файлы тома лежат в `/var/lib/docker/volumes/mysql-data/_data` в Linux-ВМ Docker Desktop.
+
+<div><hr></div>
+
 # Задание 7. Данные переживают контейнер
 
 **Что делаем:** создаём базу в MySQL, **удаляем контейнер**, запускаем
